@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">League Ping Test</string>
+    <string-array name="servers">
+        <item>NA</item>
+        <item>EUNE</item>
+        <item>EUW</item>
+        <item>OCE</item>
+        <item>LAN</item>
+    </string-array>
+</resources>
