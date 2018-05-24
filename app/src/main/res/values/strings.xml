@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">League Ping Test</string>
-    <string name="start_test">Start Test</string>
-    <string name="ping">Ping</string>
     <string name="ms_label">Current Ping: %d ms</string>
     <string name="average_ms_label">Average Ping: %d ms</string>
     <string name="server">Server: %s</string>

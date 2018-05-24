@@ -30,8 +30,6 @@ proguard/
 .navigation/
 
 # Android Studio captures folder
-captures/
-
 # IntelliJ
 .idea/tasks.xml
 .idea/gradle.xml

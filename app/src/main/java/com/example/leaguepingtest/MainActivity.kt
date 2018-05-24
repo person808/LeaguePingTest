@@ -26,9 +26,9 @@ val IP_ADDRESSES = mapOf(
 
 class MainActivity : AppCompatActivity() {
 
-    val currentPingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_current_ping) }
-    val averagePingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_average_ping) }
-    val chart: LineChart by lazy {
+    private val currentPingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_current_ping) }
+    private val averagePingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_average_ping) }
+    private val chart: LineChart by lazy {
         findViewById<LineChart>(R.id.chart).apply {
             data = this@MainActivity.lineData
             isAutoScaleMinMaxEnabled = true
@@ -43,11 +43,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
     // We must have at least one data point
-    val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
+    private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
         setDrawFilled(true)
         mode = LineDataSet.Mode.HORIZONTAL_BEZIER
     }
-    val lineData = LineData(dataSet).apply {
+    private val lineData = LineData(dataSet).apply {
         setDrawValues(false)
         isHighlightEnabled = false
     }
