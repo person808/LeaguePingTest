@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         textView.text = ping.ping.toString()
                         delay(1000)
                     }
-                    is PingStatus.Error -> textView.text = "ERROR"
+                    is PingStatus.Error -> textView.text = ping.message
                 }
             }
         }
@@ -63,12 +63,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             PingStatus.Success(pingResponse.rtt)
         } else {
             Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
-            PingStatus.Error
+            PingStatus.Error(pingResponse.errorMessage)
         }
     }
 }
 
 sealed class PingStatus {
-    object Error : PingStatus()
+    data class Error(val message: String) : PingStatus()
     data class Success(val ping: Int) : PingStatus()
 }
