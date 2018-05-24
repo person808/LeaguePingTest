@@ -4,11 +4,5 @@
     <string name="ping">Ping</string>
     <string name="ms_label">Current Ping: %d ms</string>
     <string name="average_ms_label">Average Ping: %d ms</string>
-    <string-array name="servers">
-        <item>NA</item>
-        <item>EUNE</item>
-        <item>EUW</item>
-        <item>OCE</item>
-        <item>LAN</item>
-    </string-array>
+    <string name="server">Server: %s</string>
 </resources>

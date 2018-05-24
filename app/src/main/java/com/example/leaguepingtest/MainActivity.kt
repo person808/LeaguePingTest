@@ -11,6 +11,7 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.zawadz88.materialpopupmenu.popupMenu
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
 import org.icmp4j.IcmpPingUtil
@@ -23,11 +24,10 @@ val IP_ADDRESSES = mapOf(
         "OCE" to "104.160.156.1",
         "LAN" to "104.160.136.3")
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
+class MainActivity : AppCompatActivity() {
 
     val currentPingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_current_ping) }
     val averagePingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_average_ping) }
-    val spinner: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
     val chart: LineChart by lazy {
         findViewById<LineChart>(R.id.chart).apply {
             data = this@MainActivity.lineData
@@ -60,12 +60,30 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val adapter = ArrayAdapter.createFromResource(this,
-                R.array.servers, android.R.layout.simple_spinner_item).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        findViewById<Button>(R.id.button).apply {
+            text = getString(R.string.server, "NA")
+            val popupMenu = popupMenu {
+                section {
+                    for (str in IP_ADDRESSES.keys) {
+                        item {
+                            label = str
+                            callback = {
+                                val newAddress = IP_ADDRESSES[label!!]!!
+                                if (newAddress != ipAddress) {
+                                    totalPing = 0
+                                    successfulRequests = 0
+                                    ipAddress = newAddress
+                                    this@apply.text = getString(R.string.server, label)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            setOnClickListener({
+                popupMenu.show(this@MainActivity, it)
+            })
         }
-        spinner.adapter = adapter
-        spinner.onItemSelectedListener = this
 
         launch(UI) {
             var counter = 1
@@ -103,17 +121,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             }
         }
     }
-
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        val newAddress = IP_ADDRESSES[parent?.getItemAtPosition(position)]!!
-        if (newAddress != ipAddress) {
-            totalPing = 0
-            successfulRequests = 0
-            ipAddress = newAddress
-        }
-    }
-
-    override fun onNothingSelected(parent: AdapterView<*>?) {}
 
     private fun getPing(address: String): Deferred<PingStatus> = async {
         val pingRequest = IcmpPingUtil.createIcmpPingRequest().apply {
