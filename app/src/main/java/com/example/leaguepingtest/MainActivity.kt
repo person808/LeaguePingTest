@@ -25,7 +25,8 @@ val IP_ADDRESSES = mapOf(
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
-    val textView: TextView by lazy { findViewById<TextView>(R.id.textView) }
+    val currentPingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_current_ping) }
+    val averagePingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_average_ping) }
     val spinner: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
     val chart: LineChart by lazy {
         findViewById<LineChart>(R.id.chart).apply {
@@ -52,6 +53,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     private var ipAddress = IP_ADDRESSES["NA"]!!
+    private var totalPing = 0
+    private var successfulRequests = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,12 +81,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
                 when (ping) {
                     is PingStatus.Success -> {
-                        textView.text = getString(R.string.ms_label, ping.ping)
+                        successfulRequests++
+                        totalPing += ping.ping
+                        averagePingTextView.text = getString(R.string.average_ms_label, totalPing / successfulRequests)
+                        currentPingTextView.text = getString(R.string.ms_label, ping.ping)
                         dataSet.addEntry(Entry(counter.toFloat(), ping.ping.toFloat()))
                         delay(1000)  // Wait 1 second before making another request
                     }
                     is PingStatus.Error -> {
-                        textView.text = ping.message
+                        currentPingTextView.text = ping.message
                         dataSet.addEntry(Entry(counter.toFloat(), 0f))
                     }
                 }
