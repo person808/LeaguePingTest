@@ -45,6 +45,9 @@ class MainActivity : AppCompatActivity() {
     // We must have at least one data point
     private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
         setDrawFilled(true)
+        color = R.color.secondaryDarkColor
+        setCircleColor(color)
+        fillColor = color
         mode = LineDataSet.Mode.HORIZONTAL_BEZIER
     }
     private val lineData = LineData(dataSet).apply {
