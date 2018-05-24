@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 val ping = getPing(ipAddress).await()
                 when (ping) {
                     is PingStatus.Success -> {
-                        textView.text = ping.ping.toString()
+                        textView.text = getString(R.string.ms_label, ping.ping)
                         // We only want to show the last 10 requests in the graph
                         dataSet.removeOutdatedEntries()
                         if (dataSet.entryCount >= 10) {
