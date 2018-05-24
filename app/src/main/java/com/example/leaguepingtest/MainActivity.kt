@@ -159,7 +159,6 @@ class MainActivity : AppCompatActivity() {
         }
         val pingResponse = IcmpPingUtil.executePingRequest(pingRequest)
         if (pingResponse.successFlag) {
-            Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
             PingStatus.Success(pingResponse.rtt)
         } else {
             Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
