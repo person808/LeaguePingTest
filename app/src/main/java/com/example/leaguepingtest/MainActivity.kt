@@ -3,8 +3,8 @@ package com.example.leaguepingtest
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.TextView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
@@ -52,16 +52,28 @@ class MainActivity : AppCompatActivity() {
         isHighlightEnabled = false
     }
 
-    private var ipAddress = IP_ADDRESSES["NA"]!!
-    private var totalPing = 0
+    private var currentServer = "NA"
+    private var ipAddress = IP_ADDRESSES[currentServer]!!
     private var successfulRequests = 0
+    private var totalPing = 0
+    private var xPosition = 1
+    private lateinit var job: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        savedInstanceState?.let {
+            currentServer = it.getString(SERVER)
+            ipAddress = IP_ADDRESSES[currentServer]!!
+            xPosition = it.getInt(X_POSITION)
+            dataSet.values = it.getParcelableArrayList(DATASET)
+            chart.notifyDataSetChanged()
+            chart.invalidate()
+        }
+
         findViewById<Button>(R.id.button).apply {
-            text = getString(R.string.server, "NA")
+            text = getString(R.string.server, currentServer)
             val popupMenu = popupMenu {
                 section {
                     for (str in IP_ADDRESSES.keys) {
@@ -70,6 +82,7 @@ class MainActivity : AppCompatActivity() {
                             callback = {
                                 val newAddress = IP_ADDRESSES[label!!]!!
                                 if (newAddress != ipAddress) {
+                                    currentServer = label!!
                                     totalPing = 0
                                     successfulRequests = 0
                                     ipAddress = newAddress
@@ -84,9 +97,27 @@ class MainActivity : AppCompatActivity() {
                 popupMenu.show(this@MainActivity, it)
             })
         }
+    }
 
-        launch(UI) {
-            var counter = 1
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putInt(X_POSITION, xPosition)
+        outState?.putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
+        outState?.putString(SERVER, currentServer)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        job.cancel()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        job = pingJob()
+    }
+
+    private fun pingJob(): Job {
+        return launch(UI) {
             while (isActive) {
                 val ping = getPing(ipAddress).await()
                 // We only want to show the last 10 requests in the graph
@@ -103,20 +134,20 @@ class MainActivity : AppCompatActivity() {
                         totalPing += ping.ping
                         averagePingTextView.text = getString(R.string.average_ms_label, totalPing / successfulRequests)
                         currentPingTextView.text = getString(R.string.ms_label, ping.ping)
-                        dataSet.addEntry(Entry(counter.toFloat(), ping.ping.toFloat()))
+                        dataSet.addEntry(Entry(xPosition.toFloat(), ping.ping.toFloat()))
                         delay(1000)  // Wait 1 second before making another request
                     }
                     is PingStatus.Error -> {
                         currentPingTextView.text = ping.message
-                        dataSet.addEntry(Entry(counter.toFloat(), 0f))
+                        dataSet.addEntry(Entry(xPosition.toFloat(), 0f))
                     }
                 }
 
                 // Update chart
                 chart.notifyDataSetChanged()
                 chart.invalidate()
-                if (counter < MAX_ENTRIES) {
-                    counter++
+                if (xPosition < MAX_ENTRIES) {
+                    xPosition++
                 }
             }
         }
@@ -128,11 +159,18 @@ class MainActivity : AppCompatActivity() {
         }
         val pingResponse = IcmpPingUtil.executePingRequest(pingRequest)
         if (pingResponse.successFlag) {
+            Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
             PingStatus.Success(pingResponse.rtt)
         } else {
             Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
             PingStatus.Error(pingResponse.errorMessage)
         }
+    }
+
+    companion object {
+        private const val X_POSITION = "xPosition"
+        private const val DATASET = "dataset"
+        private const val SERVER = "server"
     }
 }
 
