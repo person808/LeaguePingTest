@@ -105,7 +105,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        ipAddress = IP_ADDRESSES[parent?.getItemAtPosition(position)]!!
+        val newAddress = IP_ADDRESSES[parent?.getItemAtPosition(position)]!!
+        if (newAddress != ipAddress) {
+            totalPing = 0
+            successfulRequests = 0
+            ipAddress = newAddress
+        }
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {}
