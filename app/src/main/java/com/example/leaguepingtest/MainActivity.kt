@@ -65,28 +65,34 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         spinner.onItemSelectedListener = this
 
         launch(UI) {
-            var counter = 0
+            var counter = 1
             while (isActive) {
                 val ping = getPing(ipAddress).await()
+                // We only want to show the last 10 requests in the graph
+                dataSet.removeOutdatedEntries()
+                if (dataSet.entryCount >= MAX_ENTRIES) {
+                    for (entry in dataSet.values) {
+                        entry.x--
+                    }
+                }
+
                 when (ping) {
                     is PingStatus.Success -> {
                         textView.text = getString(R.string.ms_label, ping.ping)
-                        // We only want to show the last 10 requests in the graph
-                        dataSet.removeOutdatedEntries()
-                        if (dataSet.entryCount >= 10) {
-                            for (entry in dataSet.values) {
-                                entry.x--
-                            }
-                        }
                         dataSet.addEntry(Entry(counter.toFloat(), ping.ping.toFloat()))
-                        chart.notifyDataSetChanged()
-                        chart.invalidate()
-                        if (counter < 10) {
-                            counter++
-                        }
-                        delay(1000)
+                        delay(1000)  // Wait 1 second before making another request
                     }
-                    is PingStatus.Error -> textView.text = ping.message
+                    is PingStatus.Error -> {
+                        textView.text = ping.message
+                        dataSet.addEntry(Entry(counter.toFloat(), 0f))
+                    }
+                }
+
+                // Update chart
+                chart.notifyDataSetChanged()
+                chart.invalidate()
+                if (counter < MAX_ENTRIES) {
+                    counter++
                 }
             }
         }
