@@ -77,7 +77,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                             for (entry in dataSet.values) {
                                 entry.x--
                             }
-                            chart.moveViewToX(counter.toFloat())
                         }
                         dataSet.addEntry(Entry(counter.toFloat(), ping.ping.toFloat()))
                         chart.notifyDataSetChanged()
