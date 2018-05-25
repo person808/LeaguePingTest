@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
     // We must have at least one data point
     // The label cannot be set because it is a string resource. Set it later in onCreate.
-    private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "").apply {
+    private val dataSet = LineDataSet(mutableListOf(Entry(MAX_ENTRIES.toFloat(), 0f)), "").apply {
         setDrawFilled(true)
         color = R.color.primaryDarkColor
         setCircleColor(color)
@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var server: ServerAddress
     private var successfulRequests = 0
     private var totalPing = 0
-    private var xPosition = 1
     private lateinit var job: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +48,6 @@ class MainActivity : AppCompatActivity() {
 
         savedInstanceState?.let {
             server = it.getParcelable(SERVER)
-            xPosition = it.getInt(X_POSITION)
             dataSet.values = it.getParcelableArrayList(DATASET)
             chart.notifyDataSetChanged()
         }
@@ -135,7 +133,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState?.putInt(X_POSITION, xPosition)
         outState?.putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
         outState?.putParcelable(SERVER, server)
     }
@@ -156,10 +153,8 @@ class MainActivity : AppCompatActivity() {
                 val ping = getPing(server.address).await()
                 // We only want to show the last 10 requests in the graph
                 dataSet.removeOutdatedEntries()
-                if (dataSet.entryCount >= MAX_ENTRIES) {
-                    for (entry in dataSet.values) {
-                        entry.x--
-                    }
+                for (entry in dataSet.values) {
+                    entry.x--
                 }
 
                 when (ping) {
@@ -168,27 +163,23 @@ class MainActivity : AppCompatActivity() {
                         totalPing += ping.ping
                         averagePingTextView.text = getString(R.string.average_ms_label, totalPing / successfulRequests)
                         currentPingTextView.text = getString(R.string.ms_label, ping.ping)
-                        dataSet.addEntry(Entry(xPosition.toFloat(), ping.ping.toFloat()))
+                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
                         delay(1000)  // Wait 1 second before making another request
                     }
                     is PingStatus.Error -> {
                         currentPingTextView.text = ping.message
-                        dataSet.addEntry(Entry(xPosition.toFloat(), 0f))
+                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                     }
                 }
 
                 // Update chart
                 chart.notifyDataSetChanged()
                 chart.invalidate()
-                if (xPosition < MAX_ENTRIES) {
-                    xPosition++
-                }
             }
         }
     }
 
     companion object {
-        private const val X_POSITION = "xPosition"
         private const val DATASET = "dataset"
         private const val SERVER = "server"
     }
