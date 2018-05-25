@@ -1,7 +1,10 @@
 package com.example.leaguepingtest
 
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
@@ -9,6 +12,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.zawadz88.materialpopupmenu.popupMenu
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.view_custom_item_checkable.view.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
@@ -30,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         isHighlightEnabled = false
     }
 
-    private var server = ServerAddress()
+    private lateinit var server: ServerAddress
     private var successfulRequests = 0
     private var totalPing = 0
     private var xPosition = 1
@@ -39,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+        server = getDefaultServer(this)
 
         savedInstanceState?.let {
             server = it.getParcelable(SERVER)
@@ -64,6 +70,7 @@ class MainActivity : AppCompatActivity() {
 
         button.apply {
             text = getString(R.string.server, server.name)
+            setTextColor(ContextCompat.getColor(applicationContext, R.color.secondaryTextColor))
             val popupMenu = popupMenu {
                 section {
                     for (str in IP_ADDRESSES.keys) {
@@ -85,6 +92,41 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener({
                 popupMenu.show(this@MainActivity, it)
             })
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_overflow, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.default_server -> {
+                val popupMenu = popupMenu {
+                    section {
+                        title = getString(R.string.default_server)
+                        val defaultServerName = getDefaultServerName(this@MainActivity)
+                        for (serverName in IP_ADDRESSES.keys) {
+                            customItem {
+                                layoutResId = R.layout.view_custom_item_checkable
+                                viewBoundCallback = { view ->
+                                    if (serverName == defaultServerName) view.customItemRadioButton.isChecked = true
+                                    view.customItemTextView.text = serverName
+                                }
+                                callback = {
+                                    setDefaultServer(this@MainActivity, serverName)
+                                }
+                            }
+                        }
+                    }
+                }
+                // There are two views in the toolbar. The first being the textView for the title
+                // and the second being the ActionMenuView that holds the overflow button
+                popupMenu.show(this, toolbar.getChildAt(1))
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
         }
     }
 
