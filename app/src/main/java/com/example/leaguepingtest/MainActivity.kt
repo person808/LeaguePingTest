@@ -2,15 +2,13 @@ package com.example.leaguepingtest
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.widget.Button
-import android.widget.TextView
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.zawadz88.materialpopupmenu.popupMenu
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
@@ -19,22 +17,6 @@ import kotlinx.coroutines.experimental.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private val currentPingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_current_ping) }
-    private val averagePingTextView: TextView by lazy { findViewById<TextView>(R.id.tv_average_ping) }
-    private val chart: LineChart by lazy {
-        findViewById<LineChart>(R.id.chart).apply {
-            data = this@MainActivity.lineData
-            isAutoScaleMinMaxEnabled = true
-            axisRight.isEnabled = false
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.axisMinimum = 0f
-            xAxis.axisMaximum = 10f
-            // Disable grid background
-            xAxis.setDrawGridLines(false)
-            axisLeft.setDrawGridLines(false)
-            description = Description().apply { text = "" }
-        }
-    }
     // We must have at least one data point
     private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
         setDrawFilled(true)
@@ -64,10 +46,23 @@ class MainActivity : AppCompatActivity() {
             dataSet.values = it.getParcelableArrayList(DATASET)
             chart.notifyDataSetChanged()
         }
+
+        chart.apply {
+            data = this@MainActivity.lineData
+            isAutoScaleMinMaxEnabled = true
+            axisRight.isEnabled = false
+            xAxis.position = XAxis.XAxisPosition.BOTTOM
+            xAxis.axisMinimum = 0f
+            xAxis.axisMaximum = 10f
+            // Disable grid background
+            xAxis.setDrawGridLines(false)
+            axisLeft.setDrawGridLines(false)
+            description = Description().apply { text = "" }
+        }
         // Force an empty chart to show if there is no data
         chart.invalidate()
 
-        findViewById<Button>(R.id.button).apply {
+        button.apply {
             text = getString(R.string.server, server.name)
             val popupMenu = popupMenu {
                 section {
