@@ -38,6 +38,10 @@ dependencies {
     implementation files('libs/icmp4j-all.jar')
 }
 
+androidExtensions {
+    experimental = true
+}
+
 kotlin {
     experimental {
         coroutines "enable"

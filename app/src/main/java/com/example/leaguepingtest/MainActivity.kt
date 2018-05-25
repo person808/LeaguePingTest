@@ -2,7 +2,6 @@ package com.example.leaguepingtest
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import com.github.mikephil.charting.charts.LineChart
@@ -12,17 +11,11 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.zawadz88.materialpopupmenu.popupMenu
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
-import org.icmp4j.IcmpPingUtil
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
 
-
-val IP_ADDRESSES = mapOf(
-        "NA" to "104.160.131.3",
-        "EUW" to "104.160.141.3",
-        "EUNE" to "104.160.142.3",
-        "OCE" to "104.160.156.1",
-        "LAN" to "104.160.136.3")
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     // We must have at least one data point
     private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
         setDrawFilled(true)
-        color = R.color.secondaryDarkColor
+        color = R.color.primaryDarkColor
         setCircleColor(color)
         fillColor = color
         mode = LineDataSet.Mode.HORIZONTAL_BEZIER
@@ -55,8 +48,7 @@ class MainActivity : AppCompatActivity() {
         isHighlightEnabled = false
     }
 
-    private var currentServer = "NA"
-    private var ipAddress = IP_ADDRESSES[currentServer]!!
+    private var server = ServerAddress()
     private var successfulRequests = 0
     private var totalPing = 0
     private var xPosition = 1
@@ -67,28 +59,27 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         savedInstanceState?.let {
-            currentServer = it.getString(SERVER)
-            ipAddress = IP_ADDRESSES[currentServer]!!
+            server = it.getParcelable(SERVER)
             xPosition = it.getInt(X_POSITION)
             dataSet.values = it.getParcelableArrayList(DATASET)
             chart.notifyDataSetChanged()
-            chart.invalidate()
         }
+        // Force an empty chart to show if there is no data
+        chart.invalidate()
 
         findViewById<Button>(R.id.button).apply {
-            text = getString(R.string.server, currentServer)
+            text = getString(R.string.server, server.name)
             val popupMenu = popupMenu {
                 section {
                     for (str in IP_ADDRESSES.keys) {
                         item {
                             label = str
                             callback = {
-                                val newAddress = IP_ADDRESSES[label!!]!!
-                                if (newAddress != ipAddress) {
-                                    currentServer = label!!
+                                if (label != server.name) {
+                                    server.name = label!!
+                                    server.updateAddress()
                                     totalPing = 0
                                     successfulRequests = 0
-                                    ipAddress = newAddress
                                     this@apply.text = getString(R.string.server, label)
                                 }
                             }
@@ -106,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState?.putInt(X_POSITION, xPosition)
         outState?.putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
-        outState?.putString(SERVER, currentServer)
+        outState?.putParcelable(SERVER, server)
     }
 
     override fun onPause() {
@@ -122,7 +113,7 @@ class MainActivity : AppCompatActivity() {
     private fun pingJob(): Job {
         return launch(UI) {
             while (isActive) {
-                val ping = getPing(ipAddress).await()
+                val ping = getPing(server.address).await()
                 // We only want to show the last 10 requests in the graph
                 dataSet.removeOutdatedEntries()
                 if (dataSet.entryCount >= MAX_ENTRIES) {
@@ -156,27 +147,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getPing(address: String): Deferred<PingStatus> = async {
-        val pingRequest = IcmpPingUtil.createIcmpPingRequest().apply {
-            host = address
-        }
-        val pingResponse = IcmpPingUtil.executePingRequest(pingRequest)
-        if (pingResponse.successFlag) {
-            PingStatus.Success(pingResponse.rtt)
-        } else {
-            Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
-            PingStatus.Error(pingResponse.errorMessage)
-        }
-    }
-
     companion object {
         private const val X_POSITION = "xPosition"
         private const val DATASET = "dataset"
         private const val SERVER = "server"
     }
-}
-
-sealed class PingStatus {
-    data class Error(val message: String) : PingStatus()
-    data class Success(val ping: Int) : PingStatus()
 }
