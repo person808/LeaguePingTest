@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
             xAxis.position = XAxis.XAxisPosition.BOTTOM
             xAxis.axisMinimum = 0f
             xAxis.axisMaximum = 10f
+            xAxis.setDrawLabels(false)
             // Disable grid background
             xAxis.setDrawGridLines(false)
             axisLeft.setDrawGridLines(false)
