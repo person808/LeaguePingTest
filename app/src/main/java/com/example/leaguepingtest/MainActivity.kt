@@ -22,7 +22,8 @@ import kotlinx.coroutines.experimental.launch
 class MainActivity : AppCompatActivity() {
 
     // We must have at least one data point
-    private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "Ping").apply {
+    // The label cannot be set because it is a string resource. Set it later in onCreate.
+    private val dataSet = LineDataSet(mutableListOf(Entry(0f, 0f)), "").apply {
         setDrawFilled(true)
         color = R.color.primaryDarkColor
         setCircleColor(color)
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         chart.apply {
+            this@MainActivity.lineData.getDataSetByIndex(0).label = getString(R.string.graph_label)
             data = this@MainActivity.lineData
             isAutoScaleMinMaxEnabled = true
             axisRight.isEnabled = false
