@@ -1,4 +1,4 @@
-package com.example.leaguepingtest
+package com.kainalu.leaguepingtester
 
 import android.os.Bundle
 import android.support.v4.content.ContextCompat

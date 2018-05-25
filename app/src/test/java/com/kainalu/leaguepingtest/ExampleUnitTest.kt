@@ -1,4 +1,4 @@
-package com.example.leaguepingtest
+package com.kainalu.leaguepingtest
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.example.leaguepingtest
+package com.kainalu.leaguepingtester
 
 import android.app.Dialog
 import android.content.Context
