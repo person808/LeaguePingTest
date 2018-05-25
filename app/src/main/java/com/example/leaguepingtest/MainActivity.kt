@@ -122,9 +122,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                // There are two views in the toolbar. The first being the textView for the title
-                // and the second being the ActionMenuView that holds the overflow button
-                popupMenu.show(this, toolbar.getChildAt(1))
+                // The toolbar can hold multiple views. The ActionMenuView that holds the overflow
+                // button is always the last view in the toolbar.
+                popupMenu.show(this, toolbar.getChildAt(toolbar.childCount - 1))
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
