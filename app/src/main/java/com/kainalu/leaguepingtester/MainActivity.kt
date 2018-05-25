@@ -167,12 +167,18 @@ class MainActivity : AppCompatActivity() {
                         successfulRequests++
                         totalPing += ping.ping
                         averagePingTextView.text = getString(R.string.average_ms_label, totalPing / successfulRequests)
-                        currentPingTextView.text = getString(R.string.ms_label, ping.ping)
-                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
-                        delay(1000)  // Wait 1 second before making another request
+                        currentPingTextView.apply {
+                            text = getString(R.string.ms_label, ping.ping)
+                            setTextColor(ContextCompat.getColor(applicationContext, R.color.primaryTextColor))
+                        }
+                            dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
+                            delay(1000)  // Wait 1 second before making another request
                     }
                     is PingStatus.Error -> {
-                        currentPingTextView.text = ping.message
+                        currentPingTextView.apply {
+                            text = ping.message
+                            setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
+                        }
                         dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                     }
                 }
