@@ -9,6 +9,7 @@
     <string name="about">About</string>
     <string name="about_body"><![CDATA[
         A simple app to check your League of Legends ping.<br/>
+        IP Addresses provided by <a href=\'https://www.reddit.com/r/leagueoflegends/comments/4efy17/how_to_check_your_ping_without_getting_into_the/d20167p/\'>Riot Laslow</a>.<br/>
         Source code available on <a href=\'https://github.com/person808/LeaguePingTest\'>Github</a>.
     ]]></string>
 </resources>
