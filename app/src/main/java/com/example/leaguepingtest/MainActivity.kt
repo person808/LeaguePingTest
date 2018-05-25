@@ -127,6 +127,11 @@ class MainActivity : AppCompatActivity() {
                 popupMenu.show(this, toolbar.getChildAt(toolbar.childCount - 1))
                 return true
             }
+            R.id.view_about -> {
+                val dialog = AboutDialog()
+                dialog.show(supportFragmentManager, "AboutDialog")
+                return true
+            }
             else -> return super.onOptionsItemSelected(item)
         }
     }
