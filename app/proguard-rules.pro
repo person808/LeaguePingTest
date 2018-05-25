@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Icmp4j classes
+-keepclasseswithmembers class org.icmp4j.** { *; }
+-dontwarn org.icmp4j.**
+
+# Remove debug and verbose logs
+-assumenosideeffects class android.util.Log {
+    public static *** v(...);
+    public static *** d(...);
+}

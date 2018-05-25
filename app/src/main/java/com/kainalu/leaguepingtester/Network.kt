@@ -15,14 +15,16 @@ val IP_ADDRESSES = mapOf(
         "LAN" to "104.160.136.3")
 
 fun getPing(address: String): Deferred<PingStatus> = async {
+    val TAG = this::class.java.canonicalName
     val pingRequest = IcmpPingUtil.createIcmpPingRequest().apply {
         host = address
     }
     val pingResponse = IcmpPingUtil.executePingRequest(pingRequest)
     if (pingResponse.successFlag) {
+        Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
         PingStatus.Success(pingResponse.rtt)
     } else {
-        Log.d(this::class.java.canonicalName, IcmpPingUtil.formatResponse(pingResponse))
+        Log.e(TAG, IcmpPingUtil.formatResponse(pingResponse))
         PingStatus.Error(pingResponse.errorMessage)
     }
 }
