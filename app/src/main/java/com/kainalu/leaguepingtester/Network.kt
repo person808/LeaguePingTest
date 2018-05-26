@@ -24,7 +24,7 @@ fun getPing(address: String): Deferred<PingStatus> = async {
         Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
         PingStatus.Success(pingResponse.rtt)
     } else {
-        Log.e(TAG, IcmpPingUtil.formatResponse(pingResponse))
+        Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
         PingStatus.Error(pingResponse.errorMessage)
     }
 }
