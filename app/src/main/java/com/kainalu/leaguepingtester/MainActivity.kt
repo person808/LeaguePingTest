@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var server: ServerAddress
     private var successfulRequests = 0
     private var totalPing = 0
+    private var lastPingResult = 0
     private var jobActive = true
     private lateinit var job: Job
 
@@ -48,10 +49,17 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         server = getDefaultServer(this)
 
-        savedInstanceState?.let {
-            server = it.getParcelable(SERVER)
-            dataSet.values = it.getParcelableArrayList(DATASET)
-            jobActive = it.getBoolean(JOB_ACTIVE)
+        savedInstanceState?.run {
+            server = getParcelable(SERVER)
+            dataSet.values = getParcelableArrayList(DATASET)
+            jobActive = getBoolean(JOB_ACTIVE)
+            successfulRequests = getInt(SUCCESSFUL_REQUESTS)
+            totalPing = getInt(TOTAL_PING)
+            lastPingResult = getInt(LAST_PING_RESULT)
+
+            currentPingTextView.text = getString(R.string.ms_label, lastPingResult)
+            averagePingTextView.text = getString(R.string.average_ms_label,
+                                                 totalPing / successfulRequests)
             chart.notifyDataSetChanged()
         }
 
@@ -130,8 +138,9 @@ class MainActivity : AppCompatActivity() {
                             customItem {
                                 layoutResId = R.layout.view_custom_item_checkable
                                 viewBoundCallback = { view ->
-                                    if (serverName == defaultServerName) view.customItemRadioButton.isChecked =
-                                            true
+                                    if (serverName == defaultServerName) {
+                                        view.customItemRadioButton.isChecked = true
+                                    }
                                     view.customItemTextView.text = serverName
                                 }
                                 callback = {
@@ -161,6 +170,9 @@ class MainActivity : AppCompatActivity() {
             putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
             putParcelable(SERVER, server)
             putBoolean(JOB_ACTIVE, jobActive)
+            putInt(SUCCESSFUL_REQUESTS, successfulRequests)
+            putInt(TOTAL_PING, totalPing)
+            putInt(LAST_PING_RESULT, lastPingResult)
         }
     }
 
@@ -175,6 +187,25 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (jobActive) {
             job = startPingJob()
+        }
+    }
+
+    private fun updateTextViews(pingStatus: PingStatus) {
+        when (pingStatus) {
+            is PingStatus.Success -> {
+                averagePingTextView.text = getString(R.string.average_ms_label,
+                                                     totalPing / successfulRequests)
+                currentPingTextView.run {
+                    text = getString(R.string.ms_label, pingStatus.ping)
+                    setTextColor(ContextCompat.getColor(applicationContext, R.color.primaryTextColor))
+                }
+            }
+            is PingStatus.Error -> {
+                currentPingTextView.run {
+                    text = pingStatus.message
+                    setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
+                }
+            }
         }
     }
 
@@ -206,22 +237,13 @@ class MainActivity : AppCompatActivity() {
                         is PingStatus.Success -> {
                             successfulRequests++
                             totalPing += ping.ping
-                            averagePingTextView.text = getString(R.string.average_ms_label,
-                                                                 totalPing / successfulRequests)
-                            currentPingTextView.apply {
-                                text = getString(R.string.ms_label, ping.ping)
-                                setTextColor(ContextCompat.getColor(applicationContext,
-                                                                    R.color.primaryTextColor))
-                            }
+                            lastPingResult = ping.ping
+                            updateTextViews(ping)
                             dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
                             delay(1000)  // Wait 1 second before making another request
                         }
                         is PingStatus.Error -> {
-                            currentPingTextView.apply {
-                                text = ping.message
-                                setTextColor(ContextCompat.getColor(applicationContext,
-                                                                    R.color.errorColor))
-                            }
+                            updateTextViews(ping)
                             dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                         }
                     }
@@ -240,5 +262,8 @@ class MainActivity : AppCompatActivity() {
         private const val DATASET = "dataset"
         private const val SERVER = "server"
         private const val JOB_ACTIVE = "jobActive"
+        private const val SUCCESSFUL_REQUESTS = "successfulRequests"
+        private const val TOTAL_PING = "totalPing"
+        private const val LAST_PING_RESULT = "lastPingResult"
     }
 }

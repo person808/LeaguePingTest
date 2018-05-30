@@ -38,8 +38,9 @@
     <TextView
         android:id="@+id/currentPingTextView"
         android:layout_width="wrap_content"
-        android:layout_height="19dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:textColor="@color/primaryTextColor"
         app:layout_constraintBottom_toTopOf="@+id/averagePingTextView"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintLeft_toLeftOf="parent"
