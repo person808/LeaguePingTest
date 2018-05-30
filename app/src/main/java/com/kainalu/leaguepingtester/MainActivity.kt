@@ -158,9 +158,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState?.putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
-        outState?.putParcelable(SERVER, server)
-        outState?.putBoolean(JOB_ACTIVE, jobActive)
+        outState?.run {
+            putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
+            putParcelable(SERVER, server)
+            putBoolean(JOB_ACTIVE, jobActive)
+        }
     }
 
     override fun onPause() {
@@ -173,7 +175,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (jobActive) {
-            job = pingJob()
+            job = startPingJob()
         }
     }
 
@@ -182,13 +184,13 @@ class MainActivity : AppCompatActivity() {
             job.cancel()
             jobActive = false
         } else {
-            job = pingJob()
+            job = startPingJob()
             jobActive = true
         }
         invalidateOptionsMenu()
     }
 
-    private fun pingJob(): Job {
+    private fun startPingJob(): Job {
         jobActive = true
         return launch(UI) {
             while (isActive) {
