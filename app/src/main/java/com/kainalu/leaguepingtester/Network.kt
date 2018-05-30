@@ -1,5 +1,7 @@
 package com.kainalu.leaguepingtester
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Parcelable
 import android.util.Log
 import kotlinx.android.parcel.Parcelize
@@ -40,4 +42,12 @@ class ServerAddress(var name: String = "NA") : Parcelable {
         get() {
             return IP_ADDRESSES[name]!!
         }
+}
+
+fun isConnectedToWifi(context: Context): Boolean {
+    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val activeNetwork = cm.activeNetworkInfo
+    val isConnected = activeNetwork?.isConnectedOrConnecting == true
+    val isWiFi = activeNetwork?.type == ConnectivityManager.TYPE_WIFI
+    return isConnected && isWiFi
 }

@@ -1,6 +1,9 @@
 package com.kainalu.leaguepingtester
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
+import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
@@ -47,7 +50,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        server = getDefaultServer(this)
 
         savedInstanceState?.run {
             server = getParcelable(SERVER)
@@ -61,10 +63,10 @@ class MainActivity : AppCompatActivity() {
             averagePingTextView.text = getString(R.string.average_ms_label,
                                                  totalPing / successfulRequests)
             chart.notifyDataSetChanged()
-        }
+        } ?: firstRun()
 
+        dataSet.label = getString(R.string.graph_label)
         chart.apply {
-            this@MainActivity.lineData.getDataSetByIndex(0).label = getString(R.string.graph_label)
             data = this@MainActivity.lineData
             isAutoScaleMinMaxEnabled = true
             axisRight.isEnabled = false
@@ -101,6 +103,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             setOnClickListener({ popupMenu.show(this@MainActivity, it) })
+        }
+    }
+
+    private fun firstRun() {
+        server = getDefaultServer(this)
+        if (!isConnectedToWifi(this)) {
+            Snackbar.make(container, R.string.wifi_warning, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.wifi_settings, {
+                    startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), 0)
+                }).show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0) {
+            finish()
+            startActivity(intent)
         }
     }
 

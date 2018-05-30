@@ -42,6 +42,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.21'
     implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'

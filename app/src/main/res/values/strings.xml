@@ -14,4 +14,6 @@
         IP Addresses provided by <a href=\'https://www.reddit.com/r/leagueoflegends/comments/4efy17/how_to_check_your_ping_without_getting_into_the/d20167p/\'>Riot Laslow</a>.<br/>
         Source code available on <a href=\'https://github.com/person808/LeaguePingTest\'>Github</a>.
     ]]></string>
+    <string name="wifi_warning">Device not connected to wifi. Ping may be inaccurate.</string>
+    <string name="wifi_settings">Wifi Settings</string>
 </resources>
