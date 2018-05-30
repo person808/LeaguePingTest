@@ -3,7 +3,6 @@ package com.kainalu.leaguepingtester
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.github.mikephil.charting.components.Description
@@ -223,37 +222,33 @@ class MainActivity : AppCompatActivity() {
     private fun startPingJob(): Job {
         jobActive = true
         return launch(UI) {
-            try {
-                while (isActive) {
-                    val ping = getPing(server.address).await()
+            while (isActive) {
+                val ping = getPing(server.address).await()
 
-                    // We only want to show the last 10 requests in the graph
-                    dataSet.removeOutdatedEntries()
-                    for (entry in dataSet.values) {
-                        entry.x--
-                    }
-
-                    when (ping) {
-                        is PingStatus.Success -> {
-                            successfulRequests++
-                            totalPing += ping.ping
-                            lastPingResult = ping.ping
-                            updateTextViews(ping)
-                            dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
-                            delay(1000)  // Wait 1 second before making another request
-                        }
-                        is PingStatus.Error -> {
-                            updateTextViews(ping)
-                            dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
-                        }
-                    }
-
-                    // Update chart
-                    chart.notifyDataSetChanged()
-                    chart.invalidate()
+                // We only want to show the last 10 requests in the graph
+                dataSet.removeOutdatedEntries()
+                for (entry in dataSet.values) {
+                    entry.x--
                 }
-            } finally {
-                Log.d(this::class.java.canonicalName, "Job canceled")
+
+                when (ping) {
+                   is PingStatus.Success -> {
+                        successfulRequests++
+                        totalPing += ping.ping
+                        lastPingResult = ping.ping
+                        updateTextViews(ping)
+                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
+                        delay(1000)  // Wait 1 second before making another request
+                    }
+                    is PingStatus.Error -> {
+                        updateTextViews( ping)
+                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+                    }
+                }
+
+                // Update chart
+                chart.notifyDataSetChanged()
+                chart.invalidate()
             }
         }
     }
