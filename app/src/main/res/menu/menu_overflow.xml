@@ -3,6 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/resume_pause"
+        android:icon="@drawable/ic_pause_white_24dp"
+        android:title="@string/pause"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/default_server"
         android:title="@string/default_server"
         app:showAsAction="never" >

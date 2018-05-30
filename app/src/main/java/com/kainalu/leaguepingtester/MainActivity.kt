@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var server: ServerAddress
     private var successfulRequests = 0
     private var totalPing = 0
+    private var jobActive = true
     private lateinit var job: Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         savedInstanceState?.let {
             server = it.getParcelable(SERVER)
             dataSet.values = it.getParcelableArrayList(DATASET)
+            jobActive = it.getBoolean(JOB_ACTIVE)
             chart.notifyDataSetChanged()
         }
 
@@ -101,8 +103,26 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.let {
+            val item = it.findItem(R.id.resume_pause)
+            if (jobActive) {
+                item.title = getString(R.string.pause)
+                item.icon = getDrawable(R.drawable.ic_pause_white_24dp)
+            } else {
+                item.title = getString(R.string.resume)
+                item.icon = getDrawable(R.drawable.ic_play_arrow_white_24dp)
+            }
+        }
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
+            R.id.resume_pause -> {
+                toggleJob()
+                return true
+            }
             R.id.default_server -> {
                 val popupMenu = popupMenu {
                     section {
@@ -140,22 +160,40 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState?.putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
         outState?.putParcelable(SERVER, server)
+        outState?.putBoolean(JOB_ACTIVE, jobActive)
     }
 
     override fun onPause() {
         super.onPause()
-        job.cancel()
+        if (jobActive) {
+            job.cancel()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        job = pingJob()
+        if (jobActive) {
+            job = pingJob()
+        }
+    }
+
+    private fun toggleJob() {
+        if (jobActive) {
+            job.cancel()
+            jobActive = false
+        } else {
+            job = pingJob()
+            jobActive = true
+        }
+        invalidateOptionsMenu()
     }
 
     private fun pingJob(): Job {
+        jobActive = true
         return launch(UI) {
             while (isActive) {
                 val ping = getPing(server.address).await()
+
                 // We only want to show the last 10 requests in the graph
                 dataSet.removeOutdatedEntries()
                 for (entry in dataSet.values) {
@@ -193,5 +231,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val DATASET = "dataset"
         private const val SERVER = "server"
+        private const val JOB_ACTIVE = "jobActive"
     }
 }
