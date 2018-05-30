@@ -35,8 +35,9 @@ sealed class PingStatus {
 }
 
 @Parcelize
-class ServerAddress(var name: String = "NA", var address: String = IP_ADDRESSES[name]!!) : Parcelable {
-    fun updateAddress() {
-        address = IP_ADDRESSES[name]!!
-    }
+class ServerAddress(var name: String = "NA") : Parcelable {
+    val address: String
+        get() {
+            return IP_ADDRESSES[name]!!
+        }
 }

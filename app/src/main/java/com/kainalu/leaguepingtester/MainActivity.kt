@@ -83,7 +83,6 @@ class MainActivity : AppCompatActivity() {
                             callback = {
                                 if (label != server.name) {
                                     server.name = label!!
-                                    server.updateAddress()
                                     totalPing = 0
                                     successfulRequests = 0
                                     this@apply.text = getString(R.string.server, label)
