@@ -68,9 +68,9 @@ class MainActivity : AppCompatActivity() {
             xAxis.setDrawGridLines(false)
             axisLeft.setDrawGridLines(false)
             description = Description().apply { text = "" }
+            // Force an empty chart to show if there is no data
+            invalidate()
         }
-        // Force an empty chart to show if there is no data
-        chart.invalidate()
 
         button.apply {
             text = getString(R.string.server, server.name)
@@ -92,9 +92,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            setOnClickListener({
-                                   popupMenu.show(this@MainActivity, it)
-                               })
+            setOnClickListener({ popupMenu.show(this@MainActivity, it) })
         }
     }
 
