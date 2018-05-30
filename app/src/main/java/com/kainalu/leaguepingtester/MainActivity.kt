@@ -17,6 +17,7 @@ import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.yield
 
 
 class MainActivity : AppCompatActivity() {
@@ -239,17 +240,18 @@ class MainActivity : AppCompatActivity() {
                         lastPingResult = ping.ping
                         updateTextViews(ping)
                         dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
-                        delay(1000)  // Wait 1 second before making another request
+                        // Update chart
+                        chart.notifyDataSetChanged()
+                        chart.invalidate()
+                        // If job is not cancelled, wait 1 second before making another request
+                        yield()
+                        delay(1000)
                     }
                     is PingStatus.Error -> {
                         updateTextViews(ping)
                         dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                     }
                 }
-
-                // Update chart
-                chart.notifyDataSetChanged()
-                chart.invalidate()
             }
         }
     }
