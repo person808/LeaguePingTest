@@ -196,7 +196,8 @@ class MainActivity : AppCompatActivity() {
                                                      totalPing / successfulRequests)
                 currentPingTextView.run {
                     text = getString(R.string.ms_label, pingStatus.ping)
-                    setTextColor(ContextCompat.getColor(applicationContext, R.color.primaryTextColor))
+                    setTextColor(ContextCompat.getColor(applicationContext,
+                                                        R.color.primaryTextColor))
                 }
             }
             is PingStatus.Error -> {
@@ -232,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 when (ping) {
-                   is PingStatus.Success -> {
+                    is PingStatus.Success -> {
                         successfulRequests++
                         totalPing += ping.ping
                         lastPingResult = ping.ping
@@ -241,7 +242,7 @@ class MainActivity : AppCompatActivity() {
                         delay(1000)  // Wait 1 second before making another request
                     }
                     is PingStatus.Error -> {
-                        updateTextViews( ping)
+                        updateTextViews(ping)
                         dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                     }
                 }
