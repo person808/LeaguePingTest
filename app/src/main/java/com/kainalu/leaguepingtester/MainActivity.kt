@@ -3,6 +3,7 @@ package com.kainalu.leaguepingtester
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.github.mikephil.charting.components.Description
@@ -93,8 +94,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             setOnClickListener({
-                popupMenu.show(this@MainActivity, it)
-            })
+                                   popupMenu.show(this@MainActivity, it)
+                               })
         }
     }
 
@@ -132,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                             customItem {
                                 layoutResId = R.layout.view_custom_item_checkable
                                 viewBoundCallback = { view ->
-                                    if (serverName == defaultServerName) view.customItemRadioButton.isChecked = true
+                                    if (serverName == defaultServerName) view.customItemRadioButton.isChecked =
+                                            true
                                     view.customItemTextView.text = serverName
                                 }
                                 callback = {
@@ -193,39 +195,46 @@ class MainActivity : AppCompatActivity() {
     private fun startPingJob(): Job {
         jobActive = true
         return launch(UI) {
-            while (isActive) {
-                val ping = getPing(server.address).await()
+            try {
+                while (isActive) {
+                    val ping = getPing(server.address).await()
 
-                // We only want to show the last 10 requests in the graph
-                dataSet.removeOutdatedEntries()
-                for (entry in dataSet.values) {
-                    entry.x--
-                }
+                    // We only want to show the last 10 requests in the graph
+                    dataSet.removeOutdatedEntries()
+                    for (entry in dataSet.values) {
+                        entry.x--
+                    }
 
-                when (ping) {
-                    is PingStatus.Success -> {
-                        successfulRequests++
-                        totalPing += ping.ping
-                        averagePingTextView.text = getString(R.string.average_ms_label, totalPing / successfulRequests)
-                        currentPingTextView.apply {
-                            text = getString(R.string.ms_label, ping.ping)
-                            setTextColor(ContextCompat.getColor(applicationContext, R.color.primaryTextColor))
-                        }
+                    when (ping) {
+                        is PingStatus.Success -> {
+                            successfulRequests++
+                            totalPing += ping.ping
+                            averagePingTextView.text = getString(R.string.average_ms_label,
+                                                                 totalPing / successfulRequests)
+                            currentPingTextView.apply {
+                                text = getString(R.string.ms_label, ping.ping)
+                                setTextColor(ContextCompat.getColor(applicationContext,
+                                                                    R.color.primaryTextColor))
+                            }
                             dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
                             delay(1000)  // Wait 1 second before making another request
-                    }
-                    is PingStatus.Error -> {
-                        currentPingTextView.apply {
-                            text = ping.message
-                            setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
                         }
-                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+                        is PingStatus.Error -> {
+                            currentPingTextView.apply {
+                                text = ping.message
+                                setTextColor(ContextCompat.getColor(applicationContext,
+                                                                    R.color.errorColor))
+                            }
+                            dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+                        }
                     }
-                }
 
-                // Update chart
-                chart.notifyDataSetChanged()
-                chart.invalidate()
+                    // Update chart
+                    chart.notifyDataSetChanged()
+                    chart.invalidate()
+                }
+            } finally {
+                Log.d(this::class.java.canonicalName, "Job canceled")
             }
         }
     }
