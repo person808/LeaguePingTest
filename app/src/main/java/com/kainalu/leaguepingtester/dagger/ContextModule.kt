@@ -1,4 +1,4 @@
-package com.kainalu.leaguepingtester
+package com.kainalu.leaguepingtester.dagger
 
 import android.content.Context
 import android.content.SharedPreferences

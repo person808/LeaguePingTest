@@ -4,6 +4,7 @@ import android.arch.lifecycle.ViewModel
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.kainalu.leaguepingtester.dagger.Injector
 
 class PingViewModel : ViewModel() {
 

@@ -1,5 +1,7 @@
 package com.kainalu.leaguepingtester
 
+import com.kainalu.leaguepingtester.dagger.Injector
+
 private const val DEFAULT_SERVER_NAME = "defaultServer"
 private val sharedPreferences = Injector.get().sharedPreferences()
 
