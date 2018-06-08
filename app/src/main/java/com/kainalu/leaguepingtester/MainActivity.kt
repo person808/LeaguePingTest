@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProviders.of(this)[PingViewModel::class.java]
 
-        viewModel.dataSet.label = getString(R.string.graph_label)
         chart.setup(viewModel.lineData)
 
         viewModel.pingStatus.observe(this, Observer { pingStatus ->

@@ -28,6 +28,7 @@ class PingViewModel : ViewModel() {
         color = R.color.primaryDarkColor
         setCircleColor(color)
         fillColor = color
+        label = Injector.get().appContext().getString(R.string.graph_label)
         mode = LineDataSet.Mode.HORIZONTAL_BEZIER
     }
     val lineData = LineData(dataSet).apply {
