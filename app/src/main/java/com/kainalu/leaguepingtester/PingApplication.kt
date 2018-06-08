@@ -3,6 +3,7 @@ package com.kainalu.leaguepingtester
 import android.app.Application
 import com.kainalu.leaguepingtester.dagger.AppComponent
 import com.kainalu.leaguepingtester.dagger.ContextModule
+import com.kainalu.leaguepingtester.dagger.DaggerAppComponent
 
 class PingApplication : Application() {
 
