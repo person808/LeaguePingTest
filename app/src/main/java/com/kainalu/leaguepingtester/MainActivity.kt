@@ -1,5 +1,7 @@
 package com.kainalu.leaguepingtester
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -14,11 +16,6 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.zawadz88.materialpopupmenu.popupMenu
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_custom_item_checkable.view.*
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.yield
 
 
 class MainActivity : AppCompatActivity() {
@@ -38,33 +35,59 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var server: ServerAddress
-    private var successfulRequests = 0
-    private var totalPing = 0
-    private var lastPingResult = 0
-    private var jobActive = true
-    private lateinit var job: Job
+    private lateinit var viewModel: PingViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        viewModel = ViewModelProviders.of(this)[PingViewModel::class.java]
+
         savedInstanceState?.run {
             server = getParcelable(SERVER)
             dataSet.values = getParcelableArrayList(DATASET)
-            jobActive = getBoolean(JOB_ACTIVE)
-            successfulRequests = getInt(SUCCESSFUL_REQUESTS)
-            totalPing = getInt(TOTAL_PING)
-            lastPingResult = getInt(LAST_PING_RESULT)
 
-            currentPingTextView.text = getString(R.string.ms_label, lastPingResult)
-            averagePingTextView.text = getString(R.string.average_ms_label,
-                                                 totalPing / successfulRequests)
             chart.notifyDataSetChanged()
         } ?: firstRun()
 
         dataSet.label = getString(R.string.graph_label)
         chart.setup(lineData)
+
+        viewModel.pingStatus.observe(this, Observer { pingStatus ->
+            if (pingStatus != null) {
+                dataSet.removeOutdatedEntries()
+            }
+            when (pingStatus) {
+                is PingStatus.Success -> {
+                    if (viewModel.pingJobActive) {
+                        viewModel.successfulRequests++
+                        viewModel.totalPing += pingStatus.ping
+                    }
+                    currentPingTextView.run {
+                        text = getString(R.string.ms_label, pingStatus.ping)
+                        setTextColor(ContextCompat.getColor(applicationContext,
+                                                            R.color.primaryTextColor))
+                    }
+                    dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
+                }
+                is PingStatus.Error -> {
+                    currentPingTextView.run {
+                        text = pingStatus.message
+                        setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
+                    }
+                    dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+                }
+            }
+
+            if (viewModel.successfulRequests > 0) {
+                averagePingTextView.text = getString(R.string.average_ms_label,
+                                                     viewModel.totalPing / viewModel.successfulRequests)
+            }
+            // Update chart
+            chart.notifyDataSetChanged()
+            chart.invalidate()
+        })
 
         button.apply {
             text = getString(R.string.server, server.name)
@@ -77,8 +100,8 @@ class MainActivity : AppCompatActivity() {
                             callback = {
                                 if (label != server.name) {
                                     server.name = label!!
-                                    totalPing = 0
-                                    successfulRequests = 0
+                                    viewModel.totalPing = 0
+                                    viewModel.successfulRequests = 0
                                     this@apply.text = getString(R.string.server, label)
                                 }
                             }
@@ -116,7 +139,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.let {
             val item = it.findItem(R.id.resume_pause)
-            if (jobActive) {
+            if (viewModel.pingJobActive) {
                 item.title = getString(R.string.pause)
                 item.icon = getDrawable(R.drawable.ic_pause_white_24dp)
             } else {
@@ -173,98 +196,16 @@ class MainActivity : AppCompatActivity() {
         outState?.run {
             putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
             putParcelable(SERVER, server)
-            putBoolean(JOB_ACTIVE, jobActive)
-            putInt(SUCCESSFUL_REQUESTS, successfulRequests)
-            putInt(TOTAL_PING, totalPing)
-            putInt(LAST_PING_RESULT, lastPingResult)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (jobActive) {
-            job.cancel()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (jobActive) {
-            job = startPingJob()
-        }
-    }
-
-    private fun updateTextViews(pingStatus: PingStatus) {
-        when (pingStatus) {
-            is PingStatus.Success -> {
-                averagePingTextView.text = getString(R.string.average_ms_label,
-                                                     totalPing / successfulRequests)
-                currentPingTextView.run {
-                    text = getString(R.string.ms_label, pingStatus.ping)
-                    setTextColor(ContextCompat.getColor(applicationContext,
-                                                        R.color.primaryTextColor))
-                }
-            }
-            is PingStatus.Error -> {
-                currentPingTextView.run {
-                    text = pingStatus.message
-                    setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
-                }
-            }
-        }
-    }
-
-    private suspend fun onPingChange(pingStatus: PingStatus) {
-        when (pingStatus) {
-            is PingStatus.Success -> {
-                successfulRequests++
-                totalPing += pingStatus.ping
-                lastPingResult = pingStatus.ping
-                updateTextViews(pingStatus)
-                dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
-                // Update chart
-                chart.notifyDataSetChanged()
-                chart.invalidate()
-                // If job is not cancelled, wait 1 second before making another request
-                yield()
-                delay(1000)
-            }
-            is PingStatus.Error -> {
-                updateTextViews(pingStatus)
-                dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
-            }
         }
     }
 
     private fun toggleJob() {
-        if (jobActive) {
-            job.cancel()
-            jobActive = false
-        } else {
-            job = startPingJob()
-            jobActive = true
-        }
+        viewModel.toggleJob()
         invalidateOptionsMenu()
-    }
-
-    private fun startPingJob(): Job {
-        jobActive = true
-        return launch(UI) {
-            while (isActive) {
-                val ping = getPing(server.address).await()
-                // We only want to show the last 10 requests in the graph
-                dataSet.removeOutdatedEntries()
-                onPingChange(ping)
-            }
-        }
     }
 
     companion object {
         private const val DATASET = "dataset"
         private const val SERVER = "server"
-        private const val JOB_ACTIVE = "jobActive"
-        private const val SUCCESSFUL_REQUESTS = "successfulRequests"
-        private const val TOTAL_PING = "totalPing"
-        private const val LAST_PING_RESULT = "lastPingResult"
     }
 }
