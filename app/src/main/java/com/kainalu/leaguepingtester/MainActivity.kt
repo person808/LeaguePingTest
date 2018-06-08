@@ -11,28 +11,12 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
 import com.github.zawadz88.materialpopupmenu.popupMenu
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.view_custom_item_checkable.view.*
 
 
 class MainActivity : AppCompatActivity() {
-
-    // We must have at least one data point
-    // The label cannot be set because it is a string resource. Set it later in onCreate.
-    private val dataSet = LineDataSet(mutableListOf(Entry(MAX_ENTRIES.toFloat(), 0f)), "").apply {
-        setDrawFilled(true)
-        color = R.color.primaryDarkColor
-        setCircleColor(color)
-        fillColor = color
-        mode = LineDataSet.Mode.HORIZONTAL_BEZIER
-    }
-    private val lineData = LineData(dataSet).apply {
-        setDrawValues(false)
-        isHighlightEnabled = false
-    }
 
     private lateinit var server: ServerAddress
     private lateinit var viewModel: PingViewModel
@@ -46,18 +30,12 @@ class MainActivity : AppCompatActivity() {
 
         savedInstanceState?.run {
             server = getParcelable(SERVER)
-            dataSet.values = getParcelableArrayList(DATASET)
-
-            chart.notifyDataSetChanged()
         } ?: firstRun()
 
-        dataSet.label = getString(R.string.graph_label)
-        chart.setup(lineData)
+        viewModel.dataSet.label = getString(R.string.graph_label)
+        chart.setup(viewModel.lineData)
 
         viewModel.pingStatus.observe(this, Observer { pingStatus ->
-            if (pingStatus != null) {
-                dataSet.removeOutdatedEntries()
-            }
             when (pingStatus) {
                 is PingStatus.Success -> {
                     if (viewModel.pingJobActive) {
@@ -69,14 +47,14 @@ class MainActivity : AppCompatActivity() {
                         setTextColor(ContextCompat.getColor(applicationContext,
                                                             R.color.primaryTextColor))
                     }
-                    dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
+                    viewModel.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
                 }
                 is PingStatus.Error -> {
                     currentPingTextView.run {
                         text = pingStatus.message
                         setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
                     }
-                    dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+                    viewModel.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                 }
             }
 
@@ -194,7 +172,6 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         outState?.run {
-            putParcelableArrayList(DATASET, arrayListOf(*dataSet.values.toTypedArray()))
             putParcelable(SERVER, server)
         }
     }
@@ -205,7 +182,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val DATASET = "dataset"
         private const val SERVER = "server"
     }
 }
