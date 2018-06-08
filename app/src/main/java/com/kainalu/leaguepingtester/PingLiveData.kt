@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.yield
 
-class PingLiveData : LiveData<PingStatus>() {
+class PingLiveData(var server: ServerAddress) : LiveData<PingStatus>() {
 
     var isActive = true
     private lateinit var pingJob: Job
@@ -15,7 +15,7 @@ class PingLiveData : LiveData<PingStatus>() {
         isActive = true
         return launch {
             while (isActive) {
-                postValue(getPing("104.160.131.3").await())
+                postValue(getPing(server.address).await())
                 // If job is not cancelled, wait 1 second before making another request
                 yield()
                 delay(1000)

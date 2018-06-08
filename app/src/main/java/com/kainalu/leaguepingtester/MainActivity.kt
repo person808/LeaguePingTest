@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.view_custom_item_checkable.view.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var server: ServerAddress
     private lateinit var viewModel: PingViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,11 +25,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        viewModel = ViewModelProviders.of(this)[PingViewModel::class.java]
+        savedInstanceState ?: firstRun()
 
-        savedInstanceState?.run {
-            server = getParcelable(SERVER)
-        } ?: firstRun()
+        viewModel = ViewModelProviders.of(this)[PingViewModel::class.java]
 
         viewModel.dataSet.label = getString(R.string.graph_label)
         chart.setup(viewModel.lineData)
@@ -68,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         button.apply {
-            text = getString(R.string.server, server.name)
+            text = getString(R.string.server, viewModel.server.name)
             setTextColor(ContextCompat.getColor(applicationContext, R.color.secondaryTextColor))
             val popupMenu = popupMenu {
                 section {
@@ -76,8 +73,8 @@ class MainActivity : AppCompatActivity() {
                         item {
                             label = str
                             callback = {
-                                if (label != server.name) {
-                                    server.name = label!!
+                                if (label != viewModel.server.name) {
+                                    viewModel.server = ServerAddress(label!!)
                                     viewModel.totalPing = 0
                                     viewModel.successfulRequests = 0
                                     this@apply.text = getString(R.string.server, label)
@@ -92,7 +89,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun firstRun() {
-        server = getDefaultServer(this)
         if (!isConnectedToWifi(this)) {
             Snackbar.make(container, R.string.wifi_warning, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.wifi_settings, {
@@ -138,7 +134,7 @@ class MainActivity : AppCompatActivity() {
                 val popupMenu = popupMenu {
                     section {
                         title = getString(R.string.default_server)
-                        val defaultServerName = getDefaultServerName(this@MainActivity)
+                        val defaultServerName = getDefaultServerName()
                         for (serverName in IP_ADDRESSES.keys) {
                             customItem {
                                 layoutResId = R.layout.view_custom_item_checkable
@@ -149,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                                     view.customItemTextView.text = serverName
                                 }
                                 callback = {
-                                    setDefaultServer(this@MainActivity, serverName)
+                                    setDefaultServer(serverName)
                                 }
                             }
                         }
@@ -169,19 +165,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
-        outState?.run {
-            putParcelable(SERVER, server)
-        }
-    }
-
     private fun toggleJob() {
         viewModel.toggleJob()
         invalidateOptionsMenu()
-    }
-
-    companion object {
-        private const val SERVER = "server"
     }
 }

@@ -7,7 +7,12 @@ import com.github.mikephil.charting.data.LineDataSet
 
 class PingViewModel : ViewModel() {
 
-    val pingStatus = PingLiveData()
+    var server: ServerAddress = getDefaultServer()
+        set(value) {
+            field = value
+            pingStatus.server = field
+        }
+    val pingStatus = PingLiveData(server)
     val pingJobActive
         get() = pingStatus.isActive
     var successfulRequests = 0
@@ -16,6 +21,7 @@ class PingViewModel : ViewModel() {
     fun toggleJob() {
         pingStatus.toggleJob()
     }
+
 
     val dataSet = LineDataSet(mutableListOf(Entry(MAX_ENTRIES.toFloat(), 0f)), "").apply {
         setDrawFilled(true)
