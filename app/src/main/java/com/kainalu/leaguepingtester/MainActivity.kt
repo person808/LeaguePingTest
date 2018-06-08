@@ -8,8 +8,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -66,21 +64,7 @@ class MainActivity : AppCompatActivity() {
         } ?: firstRun()
 
         dataSet.label = getString(R.string.graph_label)
-        chart.apply {
-            data = this@MainActivity.lineData
-            isAutoScaleMinMaxEnabled = true
-            axisRight.isEnabled = false
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.axisMinimum = 0f
-            xAxis.axisMaximum = 10f
-            xAxis.setDrawLabels(false)
-            // Disable grid background
-            xAxis.setDrawGridLines(false)
-            axisLeft.setDrawGridLines(false)
-            description = Description().apply { text = "" }
-            // Force an empty chart to show if there is no data
-            invalidate()
-        }
+        chart.setup(lineData)
 
         button.apply {
             text = getString(R.string.server, server.name)
@@ -230,6 +214,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun onPingChange(pingStatus: PingStatus) {
+        when (pingStatus) {
+            is PingStatus.Success -> {
+                successfulRequests++
+                totalPing += pingStatus.ping
+                lastPingResult = pingStatus.ping
+                updateTextViews(pingStatus)
+                dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
+                // Update chart
+                chart.notifyDataSetChanged()
+                chart.invalidate()
+                // If job is not cancelled, wait 1 second before making another request
+                yield()
+                delay(1000)
+            }
+            is PingStatus.Error -> {
+                updateTextViews(pingStatus)
+                dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
+            }
+        }
+    }
+
     private fun toggleJob() {
         if (jobActive) {
             job.cancel()
@@ -246,32 +252,9 @@ class MainActivity : AppCompatActivity() {
         return launch(UI) {
             while (isActive) {
                 val ping = getPing(server.address).await()
-
                 // We only want to show the last 10 requests in the graph
                 dataSet.removeOutdatedEntries()
-                for (entry in dataSet.values) {
-                    entry.x--
-                }
-
-                when (ping) {
-                    is PingStatus.Success -> {
-                        successfulRequests++
-                        totalPing += ping.ping
-                        lastPingResult = ping.ping
-                        updateTextViews(ping)
-                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), ping.ping.toFloat()))
-                        // Update chart
-                        chart.notifyDataSetChanged()
-                        chart.invalidate()
-                        // If job is not cancelled, wait 1 second before making another request
-                        yield()
-                        delay(1000)
-                    }
-                    is PingStatus.Error -> {
-                        updateTextViews(ping)
-                        dataSet.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
-                    }
-                }
+                onPingChange(ping)
             }
         }
     }
