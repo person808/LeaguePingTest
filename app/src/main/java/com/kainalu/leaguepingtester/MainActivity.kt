@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     currentPingTextView.run {
                         text = getString(R.string.ms_label, pingStatus.ping)
-                        setTextColor(ContextCompat.getColor(applicationContext,
+                        setTextColor(ContextCompat.getColor(this@MainActivity,
                                                             R.color.primaryTextColor))
                     }
                     viewModel.addEntry(Entry(MAX_ENTRIES.toFloat(), pingStatus.ping.toFloat()))
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                 is PingStatus.Error -> {
                     currentPingTextView.run {
                         text = pingStatus.message
-                        setTextColor(ContextCompat.getColor(applicationContext, R.color.errorColor))
+                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.errorColor))
                     }
                     viewModel.addEntry(Entry(MAX_ENTRIES.toFloat(), 0f))
                 }
