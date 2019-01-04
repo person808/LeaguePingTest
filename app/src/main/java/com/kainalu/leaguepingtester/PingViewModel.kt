@@ -1,6 +1,6 @@
 package com.kainalu.leaguepingtester
 
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.ViewModel
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -24,7 +24,7 @@ class PingViewModel : ViewModel() {
     }
 
 
-    val dataSet = LineDataSet(mutableListOf(Entry(MAX_ENTRIES.toFloat(), 0f)), "").apply {
+    private val dataSet = LineDataSet(mutableListOf(Entry(MAX_ENTRIES.toFloat(), 0f)), "").apply {
         setDrawFilled(true)
         color = R.color.primaryDarkColor
         setCircleColor(color)

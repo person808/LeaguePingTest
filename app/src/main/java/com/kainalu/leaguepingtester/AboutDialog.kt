@@ -4,11 +4,10 @@ import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import com.afollestad.materialdialogs.MaterialDialog
 
 
-class AboutDialog : DialogFragment() {
+class AboutDialog : androidx.fragment.app.DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
              val builder = MaterialDialog.Builder(activity as Context)

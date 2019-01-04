@@ -1,6 +1,6 @@
 package com.kainalu.leaguepingtester
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
