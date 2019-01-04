@@ -5,8 +5,8 @@ import android.net.ConnectivityManager
 import android.os.Parcelable
 import android.util.Log
 import kotlinx.android.parcel.Parcelize
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.icmp4j.IcmpPingUtil
 
 val IP_ADDRESSES = mapOf(
@@ -16,20 +16,22 @@ val IP_ADDRESSES = mapOf(
         "OCE" to "104.160.156.1",
         "LAN" to "104.160.136.3")
 
-fun getPing(address: String): Deferred<PingStatus> = async {
-    val TAG = this::class.java.canonicalName
-    val pingRequest = IcmpPingUtil.createIcmpPingRequest().apply {
-        host = address
-    }
-    val pingResponse = IcmpPingUtil.executePingRequest(pingRequest)
-    if (pingResponse.successFlag) {
-        Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
-        PingStatus.Success(pingResponse.rtt)
-    } else {
-        Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
-        PingStatus.Error(pingResponse.errorMessage)
-    }
-}
+suspend fun getPing(address: String): PingStatus =
+        withContext(Dispatchers.IO) {
+            val TAG = this::class.java.canonicalName
+            val pingResponse = IcmpPingUtil.createIcmpPingRequest().apply {
+                host = address
+            }.run {
+                IcmpPingUtil.executePingRequest(this)
+            }
+            if (pingResponse.successFlag) {
+                Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
+                PingStatus.Success(pingResponse.rtt)
+            } else {
+                Log.d(TAG, IcmpPingUtil.formatResponse(pingResponse))
+                PingStatus.Error(pingResponse.errorMessage)
+            }
+        }
 
 sealed class PingStatus {
     data class Error(val message: String) : PingStatus()

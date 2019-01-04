@@ -15,7 +15,7 @@ class PingViewModel : ViewModel() {
         }
     val pingStatus = PingLiveData(server)
     val pingJobActive
-        get() = pingStatus.isActive
+        get() = pingStatus.pingEnabled
     var successfulRequests = 0
     var totalPing = 0
 
