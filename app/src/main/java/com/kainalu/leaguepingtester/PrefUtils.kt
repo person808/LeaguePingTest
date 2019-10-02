@@ -9,11 +9,19 @@ fun getDefaultServerName(): String? {
     return sharedPreferences.getString(DEFAULT_SERVER_NAME, null)
 }
 
-fun getDefaultServer(): ServerAddress {
-    getDefaultServerName()?.let {
-        return ServerAddress(name = it)
-    } ?: setDefaultServer("NA")
-    return ServerAddress("NA")
+fun getDefaultServer(): Server {
+    val defaultServerName = getDefaultServerName()
+    return if (defaultServerName == null) {
+        setDefaultServer(Server.NA.name)
+        Server.NA
+    } else {
+        try {
+            Server.valueOf(defaultServerName)
+        } catch (e: IllegalArgumentException) {
+            setDefaultServer(Server.NA.name)
+            Server.NA
+        }
+    }
 }
 
 fun setDefaultServer(serverName: String) {

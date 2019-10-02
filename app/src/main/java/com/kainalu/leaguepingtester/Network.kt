@@ -2,19 +2,18 @@ package com.kainalu.leaguepingtester
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.os.Parcelable
 import android.util.Log
-import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.icmp4j.IcmpPingUtil
 
-val IP_ADDRESSES = mapOf(
-        "NA" to "104.160.131.3",
-        "EUW" to "104.160.141.3",
-        "EUNE" to "104.160.142.3",
-        "OCE" to "104.160.156.1",
-        "LAN" to "104.160.136.3")
+enum class Server(val ipAddress: String) {
+    NA("104.160.131.3"),
+    EUW("104.160.141.3"),
+    EUNE("104.160.142.3"),
+    OCE("104.160.156.1"),
+    LAN("104.160.136.3")
+}
 
 suspend fun getPing(address: String): PingStatus =
         withContext(Dispatchers.IO) {
@@ -36,14 +35,6 @@ suspend fun getPing(address: String): PingStatus =
 sealed class PingStatus {
     data class Error(val message: String) : PingStatus()
     data class Success(val ping: Int) : PingStatus()
-}
-
-@Parcelize
-class ServerAddress(var name: String = "NA") : Parcelable {
-    val address: String
-        get() {
-            return IP_ADDRESSES[name]!!
-        }
 }
 
 fun isConnectedToWifi(context: Context): Boolean {
