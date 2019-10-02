@@ -69,10 +69,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewModel.viewState.observe(this, Observer { viewState ->
-            if (viewState.jobStatus == JobStatus.ACTIVE) {
-                viewModel.startPingJob()
-            }
-
             button.text = getString(R.string.server, viewState.server.name)
             when (viewState.pingStatus) {
                 is PingStatus.Success -> {
@@ -132,6 +128,11 @@ class MainActivity : AppCompatActivity() {
             }
             setOnClickListener { popupMenu.show(this@MainActivity, it) }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.resumePingJob()
     }
 
     override fun onPause() {

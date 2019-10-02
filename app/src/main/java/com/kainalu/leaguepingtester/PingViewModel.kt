@@ -67,7 +67,13 @@ class PingViewModel : ViewModel() {
         }
     }
 
-    private fun pausePingJob() {
+    fun resumePingJob() {
+        if (currentViewState.jobStatus == JobStatus.ACTIVE) {
+            startPingJob()
+        }
+    }
+
+    fun pausePingJob() {
         cancelPingJob()
         _viewState.value = currentViewState.copy(jobStatus = JobStatus.PAUSED)
     }
