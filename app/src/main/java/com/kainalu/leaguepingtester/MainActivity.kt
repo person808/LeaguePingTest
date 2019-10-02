@@ -26,6 +26,57 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders.of(this)[PingViewModel::class.java]
 
         chart.setup(viewModel.lineData)
+        setupToolbar()
+        button.apply {
+            setTextColor(ContextCompat.getColor(applicationContext, R.color.secondaryTextColor))
+            val popupMenu = popupMenu {
+                section {
+                    for (server in Server.values()) {
+                        item {
+                            label = server.name
+                            callback = {
+                                viewModel.setServer(server)
+                                this@apply.text = getString(R.string.server, label)
+                            }
+                        }
+                    }
+                }
+            }
+            setOnClickListener { popupMenu.show(this@MainActivity, it) }
+        }
+
+        viewModel.viewState.observe(this, Observer { render(it) })
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.resumePingJob()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.cancelPingJob()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0) {
+            finish()
+            startActivity(intent)
+        }
+    }
+
+    private fun firstRun() {
+        if (!isConnectedToWifi(this)) {
+            Snackbar.make(container, R.string.wifi_warning, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.wifi_settings) {
+                        startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), 0)
+                    }.show()
+        }
+    }
+
+    private fun setupToolbar() {
         toolbar.inflateMenu(R.menu.menu_overflow)
         toolbar.setOnMenuItemClickListener { item ->
             when (item?.itemId) {
@@ -67,94 +118,49 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
 
-        viewModel.viewState.observe(this, Observer { viewState ->
-            button.text = getString(R.string.server, viewState.server.name)
-            when (viewState.pingStatus) {
-                is PingStatus.Success -> {
-                    currentPingTextView.apply {
-                        text = getString(R.string.ms_label, viewState.pingStatus.ping)
-                        setTextColor(ContextCompat.getColor(this@MainActivity,
-                                R.color.primaryTextColor))
-                    }
-                }
-                is PingStatus.Error -> {
-                    currentPingTextView.apply {
-                        text = viewState.pingStatus.message
-                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.errorColor))
-                    }
+    private fun render(viewState: PingViewState) {
+        button.text = getString(R.string.server, viewState.server.name)
+        when (viewState.pingStatus) {
+            is PingStatus.Success -> {
+                currentPingTextView.apply {
+                    text = getString(R.string.ms_label, viewState.pingStatus.ping)
+                    setTextColor(ContextCompat.getColor(this@MainActivity,
+                            R.color.primaryTextColor))
                 }
             }
-
-            if (viewState.successfulRequests > 0) {
-                averagePingTextView.text = getString(R.string.average_ms_label,
-                        viewState.totalPing / viewState.successfulRequests)
-            }
-
-            // Update toolbar
-            toolbar.menu.apply {
-                val item = findItem(R.id.resume_pause)
-                item?.let {
-                    if (viewState.jobStatus == JobStatus.ACTIVE) {
-                        item.title = getString(R.string.pause)
-                        item.icon = getDrawable(R.drawable.ic_pause_white_24dp)
-                    } else {
-                        item.title = getString(R.string.resume)
-                        item.icon = getDrawable(R.drawable.ic_play_arrow_white_24dp)
-                    }
-                }
-                invalidateOptionsMenu()
-            }
-
-            // Update chart
-            chart.notifyDataSetChanged()
-            chart.invalidate()
-        })
-
-        button.apply {
-            setTextColor(ContextCompat.getColor(applicationContext, R.color.secondaryTextColor))
-            val popupMenu = popupMenu {
-                section {
-                    for (server in Server.values()) {
-                        item {
-                            label = server.name
-                            callback = {
-                                viewModel.setServer(server)
-                                this@apply.text = getString(R.string.server, label)
-                            }
-                        }
-                    }
+            is PingStatus.Error -> {
+                currentPingTextView.apply {
+                    text = viewState.pingStatus.message
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.errorColor))
                 }
             }
-            setOnClickListener { popupMenu.show(this@MainActivity, it) }
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.resumePingJob()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.cancelPingJob()
-    }
-
-    private fun firstRun() {
-        if (!isConnectedToWifi(this)) {
-            Snackbar.make(container, R.string.wifi_warning, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.wifi_settings) {
-                        startActivityForResult(Intent(Settings.ACTION_WIFI_SETTINGS), 0)
-                    }.show()
+        if (viewState.successfulRequests > 0) {
+            averagePingTextView.text = getString(R.string.average_ms_label,
+                    viewState.totalPing / viewState.successfulRequests)
         }
-    }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 0) {
-            finish()
-            startActivity(intent)
+        // Update toolbar
+        toolbar.menu.apply {
+            val item = findItem(R.id.resume_pause)
+            item?.let {
+                if (viewState.jobStatus == JobStatus.ACTIVE) {
+                    item.title = getString(R.string.pause)
+                    item.icon = getDrawable(R.drawable.ic_pause_white_24dp)
+                } else {
+                    item.title = getString(R.string.resume)
+                    item.icon = getDrawable(R.drawable.ic_play_arrow_white_24dp)
+                }
+            }
+            invalidateOptionsMenu()
         }
+
+        // Update chart
+        chart.notifyDataSetChanged()
+        chart.invalidate()
     }
 
     private fun toggleJob() {
