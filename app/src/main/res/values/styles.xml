@@ -1,11 +1,16 @@
 <resources>
 
-    <style name="Theme.LeagueTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.BaseTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
+        <item name="colorSecondary">@color/secondaryColor</item>
+        <item name="colorSecondaryVariant">@color/secondaryDarkColor</item>
         <item name="colorAccent">@color/accentColor</item>
-        <item name="colorOnPrimary">@color/secondaryTextColor</item>
-        <item name="colorOnSecondary">@color/primaryTextColor</item>
+        <item name="colorOnPrimary">@color/primaryTextColor</item>
+        <item name="colorOnSecondary">@color/secondaryTextColor</item>
         <item name="colorError">@color/errorColor</item>
+        <item name="android:statusBarColor">@color/primaryColor</item>
     </style>
+
+    <style name="Theme.LeagueTheme" parent="Theme.BaseTheme" />
 </resources>

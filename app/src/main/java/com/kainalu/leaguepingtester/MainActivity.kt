@@ -28,7 +28,6 @@ class MainActivity : AppCompatActivity() {
         chart.setup(viewModel.lineData)
         setupToolbar()
         button.apply {
-            setTextColor(ContextCompat.getColor(applicationContext, R.color.secondaryTextColor))
             val popupMenu = popupMenu {
                 section {
                     for (server in Server.values()) {
@@ -127,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                 currentPingTextView.apply {
                     text = getString(R.string.ms_label, viewState.pingStatus.ping)
                     setTextColor(ContextCompat.getColor(this@MainActivity,
-                            R.color.primaryTextColor))
+                            R.color.secondaryTextColor))
                 }
             }
             is PingStatus.Error -> {
