@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="toolbarElevation">4dp</dimen>
+    <dimen name="dialogHorizontalPadding">24dp</dimen>
+    <dimen name="dialogVerticalPadding">8dp</dimen>
 </resources>

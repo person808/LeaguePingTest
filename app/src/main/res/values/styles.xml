@@ -1,21 +1,11 @@
 <resources>
 
-    <style name="Theme.LeagueTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.LeagueTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primaryColor</item>
-        <item name="colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
         <item name="colorAccent">@color/accentColor</item>
-        <item name="android:statusBarColor">@color/primaryDarkColor</item>
-        <item name="android:textColorPrimary">@color/primaryTextColor</item>
-        <item name="android:textColorPrimaryInverse">@color/secondaryTextColor</item>
-        <item name="android:actionOverflowButtonStyle">@style/ActionButtonOverflow</item>
+        <item name="colorOnPrimary">@color/secondaryTextColor</item>
+        <item name="colorOnSecondary">@color/primaryTextColor</item>
+        <item name="colorError">@color/errorColor</item>
     </style>
-
-    <style name="ToolBar.TextAppearance" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
-        <item name="android:textColor">@color/secondaryTextColor</item>
-    </style>
-
-    <style name="ActionButtonOverflow" parent="@style/Widget.AppCompat.ActionButton.Overflow">
-        <item name="android:tint">@color/secondaryTextColor</item>
-    </style>
-
 </resources>
