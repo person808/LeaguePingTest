@@ -3,11 +3,11 @@ package com.kainalu.leaguepingtester
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import com.github.zawadz88.materialpopupmenu.popupMenu
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -26,23 +26,14 @@ class MainActivity : AppCompatActivity() {
 
         chart.setup(viewModel.lineData)
         setupToolbar()
-        button.apply {
-            val popupMenu = popupMenu {
-                section {
-                    for (server in Server.values()) {
-                        item {
-                            label = server.name
-                            callback = {
-                                viewModel.setServer(server)
-                                this@apply.text = getString(R.string.server, label)
-                            }
-                        }
-                    }
-                }
+        serverTextView.apply {
+            val servers = Server.values()
+            val adapter = ArrayAdapter(this@MainActivity, R.layout.support_simple_spinner_dropdown_item, servers)
+            setAdapter(adapter)
+            setOnItemClickListener { _, _, position, _ ->
+                viewModel.setServer(servers[position])
             }
-            setOnClickListener { popupMenu.show(this@MainActivity, it) }
         }
-
         viewModel.viewState.observe(this, Observer { render(it) })
 
     }
@@ -131,7 +122,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun render(viewState: PingViewState) {
-        button.text = getString(R.string.server, viewState.server.name)
+        serverTextView.setText(getString(R.string.server, viewState.server.name), false)
         when (viewState.pingStatus) {
             is PingStatus.Success -> {
                 currentPingTextView.apply {
