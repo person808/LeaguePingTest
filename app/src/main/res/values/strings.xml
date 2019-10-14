@@ -16,4 +16,9 @@
     ]]></string>
     <string name="wifi_warning">Device not connected to wifi. Ping may be inaccurate.</string>
     <string name="wifi_settings">Wifi Settings</string>
+    <string name="na_server">NA</string>
+    <string name="euw_server">EUW</string>
+    <string name="eune_server">EUNE</string>
+    <string name="oce_server">OCE</string>
+    <string name="lan_server">LAN</string>
 </resources>

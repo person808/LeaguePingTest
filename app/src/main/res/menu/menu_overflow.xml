@@ -10,8 +10,26 @@
     <item
         android:id="@+id/default_server"
         android:title="@string/default_server"
-        app:showAsAction="never" >
-        <menu/>
+        app:showAsAction="never">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/na_server"
+                    android:title="@string/na_server" />
+                <item
+                    android:id="@+id/euw_server"
+                    android:title="@string/euw_server" />
+                <item
+                    android:id="@+id/eune_server"
+                    android:title="@string/eune_server" />
+                <item
+                    android:id="@+id/oce_server"
+                    android:title="@string/oce_server" />
+                <item
+                    android:id="@+id/lan_server"
+                    android:title="@string/lan_server" />
+            </group>
+        </menu>
     </item>
     <item
         android:id="@+id/view_about"

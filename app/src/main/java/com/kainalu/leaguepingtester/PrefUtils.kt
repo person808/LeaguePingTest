@@ -29,3 +29,7 @@ fun setDefaultServer(serverName: String) {
         .putString(DEFAULT_SERVER_NAME, serverName)
         .apply()
 }
+
+fun setDefaultServer(server: Server) {
+    setDefaultServer(server.name)
+}

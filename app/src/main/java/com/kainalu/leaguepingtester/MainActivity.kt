@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModelProviders
 import com.github.zawadz88.materialpopupmenu.popupMenu
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.view_custom_item_checkable.view.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -84,29 +83,41 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.default_server -> {
-                    val popupMenu = popupMenu {
-                        section {
-                            title = getString(R.string.default_server)
-                            val defaultServerName = getDefaultServerName()
-                            for (server in Server.values()) {
-                                customItem {
-                                    layoutResId = R.layout.view_custom_item_checkable
-                                    viewBoundCallback = { view ->
-                                        if (server.name == defaultServerName) {
-                                            view.customItemRadioButton.isChecked = true
-                                        }
-                                        view.customItemTextView.text = server.name
-                                    }
-                                    callback = {
-                                        setDefaultServer(server.name)
-                                    }
-                                }
-                            }
-                        }
+                    val menu = toolbar.menu
+                    val defaultServerItem = when (getDefaultServerName()) {
+                        "NA" -> menu.findItem(R.id.na_server)
+                        "EUW" -> menu.findItem(R.id.euw_server)
+                        "EUNE" -> menu.findItem(R.id.eune_server)
+                        "OCE" -> menu.findItem(R.id.oce_server)
+                        "LAN" -> menu.findItem(R.id.lan_server)
+                        else -> menu.findItem(R.id.na_server)
                     }
-                    // The toolbar can hold multiple views. The ActionMenuView that holds the overflow
-                    // button is always the last view in the toolbar.
-                    popupMenu.show(this, toolbar.getChildAt(toolbar.childCount - 1))
+                    defaultServerItem.isChecked = true
+                    true
+                }
+                R.id.na_server -> {
+                    item.isChecked = true
+                    setDefaultServer(Server.NA)
+                    true
+                }
+                R.id.euw_server -> {
+                    item.isChecked = true
+                    setDefaultServer(Server.EUW)
+                    true
+                }
+                R.id.eune_server -> {
+                    item.isChecked = true
+                    setDefaultServer(Server.EUNE)
+                    true
+                }
+                R.id.oce_server -> {
+                    item.isChecked = true
+                    setDefaultServer(Server.OCE)
+                    true
+                }
+                R.id.lan_server -> {
+                    item.isChecked = true
+                    setDefaultServer(Server.LAN)
                     true
                 }
                 R.id.view_about -> {
